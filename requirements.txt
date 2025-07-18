@@ -1,0 +1,7 @@
+streamlit
+playwright
+beautifulsoup4
+spacy
+textstat
+extruct
+w3lib
