@@ -1,35 +1,41 @@
 import streamlit as st
-import asyncio
-from playwright.async_api import async_playwright
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs
 import spacy
 from textstat import flesch_reading_ease as FRE
 import extruct
 from w3lib.html import get_base_url
 
-# Async HTML fetch
-async def fetch_html(url):
-    async with async_playwright() as p:
-        browser = await p.firefox.launch(headless=True)
-        try:
-            page = await browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            await page.goto(url, wait_until="domcontentloaded")
-            html = await page.content()
-            return html
-        finally:
-            await browser.close()
+# Function to fetch html with Selenium headless Chrome
+def fetch_html(url):
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-# Score calculation
+    driver = webdriver.Chrome(options=options)
+    try:
+        driver.get(url)
+        # Wait for page to load. You can add explicit waits if needed.
+        html = driver.page_source
+    finally:
+        driver.quit()
+    return html
+
+# Score calculation (same as before)
 def compute_scores(html, url):
     soup = bs(html, 'html.parser')
     main = soup.find('main')
     text = main.get_text(" ", strip=True) if main else soup.get_text(" ", strip=True)
 
-    # Semantic tags score
     semantic_tags = ['header', 'main', 'article', 'section', 'footer']
     semantic_score = sum(1 for tag in semantic_tags if soup.find(tag)) / len(semantic_tags)
 
-    # Readability score
     try:
         nlp = spacy.load("en_core_web_sm")
         doc = nlp(text)
@@ -39,7 +45,6 @@ def compute_scores(html, url):
     except Exception:
         readability = FRE(text)
 
-    # Metadata score
     metadata = extruct.extract(html, base_url=url)
     has_jsonld = bool(metadata.get('json-ld'))
     title = soup.find('title')
@@ -47,11 +52,9 @@ def compute_scores(html, url):
     og_title = soup.find('meta', attrs={'property': 'og:title'})
     meta_score = int(bool(title) + bool(meta_desc) + bool(og_title)) / 3
 
-    # Image alt text score
     imgs = soup.find_all('img')
     img_alt_score = sum(1 for img in imgs if img.get('alt')) / len(imgs) if imgs else 1
 
-    # Final score
     final_score = (
         semantic_score * 0.25 +
         (readability / 100) * 0.25 +
@@ -78,7 +81,7 @@ if st.button("Analyze"):
     if url:
         with st.spinner("Fetching and analyzing..."):
             try:
-                html = asyncio.run(fetch_html(url))
+                html = fetch_html(url)
                 scores = compute_scores(html, url)
 
                 st.markdown("### 📊 Scores:")
