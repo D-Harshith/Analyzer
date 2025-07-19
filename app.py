@@ -1,10 +1,3 @@
-import os
-try:
-    from playwright.sync_api import sync_playwright
-except ImportError:
-    os.system("pip install playwright && playwright install")
-    from playwright.sync_api import sync_playwright
-
 import streamlit as st
 import asyncio
 from playwright.async_api import async_playwright
@@ -88,13 +81,13 @@ if st.button("Analyze"):
                 html = asyncio.run(fetch_html(url))
                 scores = compute_scores(html, url)
 
-                st.markdown("### Scores:")
+                st.markdown("### 📊 Scores:")
                 st.write(f"**Semantic score:**         {scores['semantic_score']}")
                 st.write(f"**Readability score:**      {scores['readability_score']}")
                 st.write(f"**Has JSON-LD:**            {scores['has_jsonld']}")
                 st.write(f"**Metadata score:**         {scores['meta_score']}")
                 st.write(f"**Image alt text score:**   {scores['img_alt_score']}")
-                st.markdown(f"### Final AI Readability Score: **{scores['final_score']} / 100**")
+                st.markdown(f"### 🧠 Final AI Readability Score: **{scores['final_score']} / 100**")
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
