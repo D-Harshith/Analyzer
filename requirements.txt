@@ -1,6 +1,8 @@
 streamlit
-beautifulsoup4
-requests
 playwright
-tldextract
-aiohttp
+beautifulsoup4
+spacy
+textstat
+extruct
+w3lib
+requests
