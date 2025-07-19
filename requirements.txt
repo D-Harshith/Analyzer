@@ -5,3 +5,4 @@ spacy
 textstat
 extruct
 w3lib
+requests
