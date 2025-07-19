@@ -6,3 +6,5 @@ textstat
 extruct
 w3lib
 requests
+
+-e .
