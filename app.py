@@ -1,3 +1,10 @@
+import os
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    os.system("pip install playwright && playwright install")
+    from playwright.sync_api import sync_playwright
+
 import streamlit as st
 import asyncio
 from playwright.async_api import async_playwright
